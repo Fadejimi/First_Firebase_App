@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "592355879758",
+    "firebase_url": "https://savingsapplication.firebaseio.com",
+    "project_id": "savingsapplication",
+    "storage_bucket": "savingsapplication.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592355879758:android:f64f8933545331ac",
+        "android_client_info": {
+          "package_name": "com.fadejimi.savingsapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "592355879758-77mnk8t3hgtpmq4ast883pvvjir69ntq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBh-DtJrRbS2H_G1Tsdzij-TjVv9d1kO94"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
