@@ -28,6 +28,10 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ResetPasswordActivity"
+            android:label="@string/title_activity_result"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
