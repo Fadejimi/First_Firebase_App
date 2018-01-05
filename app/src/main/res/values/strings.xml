@@ -39,4 +39,13 @@
     <string name="forgot_password_msg">We just need your registered Email Id to sent you password reset instructions.</string>
     <string name="title_activity_result">ResultActivity</string>
 
+
+    <string name="outlet_name">Name of Outlet</string>
+    <string name="address">Address of Outlet</string>
+    <string name="class_item">Class of Item</string>
+    <string name="contact_name">Name of Contact</string>
+    <string name="contact_mobile">Mobile Number</string>
+    <string name="qty">Quantity</string>
+    <string name="title_activity_maps">Map</string>
+
 </resources>

@@ -1,8 +1,14 @@
 package com.fadejimi.savingsapp;
 
+import android.content.Intent;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -17,8 +23,13 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.fadejimi.savingsapp.model.Outlet;
 import com.fadejimi.savingsapp.model.User;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,12 +39,15 @@ import com.google.firebase.database.ValueEventListener;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = MainActivity.class.getSimpleName();
-    private EditText nameEditText;
-    private EditText emailEditText;
+    private EditText outletNameEditText, addressEditText, classItemEditText,
+            contactNameEditText, contactMobileEditText, qtyEditText;
     private Button saveButton;
     private TextView txtDetails;
     private DatabaseReference mFirebaseDatabase;
     private FirebaseDatabase mFirebaseInstance;
+    private FirebaseAuth auth;
+    private FirebaseAuth.AuthStateListener authListener;
+
 
     private String userId;
 
@@ -44,14 +58,14 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -59,15 +73,35 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        /*NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);*/
+
+        auth = FirebaseAuth.getInstance();
+
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        authListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                if (user == null) {
+                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                    finish();
+                }
+            }
+        };
 
         View appView = findViewById(R.id.app_view);
         View contentView = appView.findViewById(R.id.content_view);
 
         txtDetails = (TextView) contentView.findViewById(R.id.txt_user);
-        emailEditText = (EditText) contentView.findViewById(R.id.email);
-        nameEditText = (EditText) contentView.findViewById(R.id.name);
+        outletNameEditText = (EditText) contentView.findViewById(R.id.outlet_name);
+        addressEditText = (EditText) contentView.findViewById(R.id.outlet_address);
+        classItemEditText = (EditText) contentView.findViewById(R.id.class_item);
+        contactNameEditText = (EditText) contentView.findViewById(R.id.contact_name);
+        contactMobileEditText = (EditText) contentView.findViewById(R.id.contact_mobile);
+        qtyEditText = (EditText) contentView.findViewById(R.id.qty);
         saveButton = (Button) contentView.findViewById(R.id.btn_save);
 
         mFirebaseInstance = FirebaseDatabase.getInstance();
@@ -108,15 +142,41 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void saveUser() {
-        String name = nameEditText.getText().toString();
-        String email = emailEditText.getText().toString();
+        if (!isGooglePlayServicesAvailable()) {
+            try {
+                LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                Criteria criteria = new Criteria();
+                String bestProvider = locationManager.getBestProvider(criteria, true);
+                Location location = locationManager.getLastKnownLocation(bestProvider);
 
-        // check for already existed userId
-        if (TextUtils.isEmpty(userId)) {
-            createUser(name, email);
-        } else {
-            updateUser(name,email);
+                if (location == null) {
+                    Toast.makeText(this, "The location is not available try again later and location is null", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+
+                String outletName = outletNameEditText.getText().toString();
+                String address = addressEditText.getText().toString();
+                String classItem = classItemEditText.getText().toString();
+                String contactName = contactNameEditText.getText().toString();
+                String contactMobile = contactMobileEditText.getText().toString();
+                String quantity = qtyEditText.getText().toString();
+                String userId = auth.getCurrentUser().getUid();
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+
+                createOutlet(userId, outletName, address, classItem, contactName, contactMobile,
+                        quantity, latitude, longitude);
+
+            }
+            catch(SecurityException ex) {
+                Toast.makeText(this, "The location is not available try again later", Toast.LENGTH_SHORT).show();
+            }
         }
+    }
+
+    private boolean isGooglePlayServicesAvailable() {
+        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        return true;
     }
 
     private void toggleButton() {
@@ -128,6 +188,75 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void createOutlet(String uId, String outletName, String address, String classItem, String contactName,
+                              String contactMobile, String quantity, double latitude, double longitude) {
+        if (TextUtils.isEmpty(userId)) {
+            userId = mFirebaseDatabase.push().getKey();
+        }
+
+        if (isValid(outletName, address, classItem, contactName, contactMobile, quantity)) {
+            double qty = Double.parseDouble(quantity);
+            Outlet outlet = new Outlet(uId, outletName, address, classItem, contactName,
+                    contactMobile, qty, latitude, longitude);
+
+            mFirebaseDatabase.child(userId).setValue(outlet);
+
+            addUserChangeListener();
+        }
+
+    }
+
+    private boolean isValid(String outletName, String address, String classItem, String contactName, String contactMobile,
+                            String qty) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (outletName.length() == 0) {
+            stringBuilder.append("Please fill in the outlet name");
+        }
+        if (address.length() == 0) {
+            stringBuilder.append("Please fill in the address");
+        }
+        if (classItem.length() == 0) {
+            stringBuilder.append("Please fill in the class item");
+        }
+        if (contactName.length() == 0) {
+            stringBuilder.append("Please fill in the contact name");
+        }
+        if (contactMobile.length() == 0) {
+            stringBuilder.append("Please fill in the contact mobile");
+        }
+        if (qty.length() == 0) {
+            stringBuilder.append("Please fill in the quantity");
+        }
+        if (!isDouble(qty)) {
+            stringBuilder.append("The quantity must be a decimal number");
+        }
+
+        String error = stringBuilder.toString();
+
+        if (error.length() == 0) {
+            return true;
+        }
+        else {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setTitle("Input Error");
+            alertDialogBuilder.setMessage(error).setCancelable(true);
+            AlertDialog alertDialog = alertDialogBuilder.create();
+
+            alertDialog.show();
+
+            return false;
+        }
+    }
+
+    private boolean isDouble(String qty) {
+        try {
+            Double.parseDouble(qty);
+            return true;
+        }
+        catch(Exception ex) {
+            return false;
+        }
+    }
     private void createUser(String name, String email) {
         // TODO
         // In real apps userId should be fetched by using firebase Auth
@@ -146,23 +275,23 @@ public class MainActivity extends AppCompatActivity
         mFirebaseDatabase.child(userId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
+                Outlet outlet = dataSnapshot.getValue(Outlet.class);
 
                 // check for null
-                if (user == null) {
-                    Log.e(TAG, "User data is null");
+                if (outlet == null) {
+                    Log.e(TAG, "Outlet data is null");
                     return;
                 }
 
-                Log.e(TAG, "User data is changed!" + user.name + ", " + user.email);
+                Log.e(TAG, "Outlet data is changed! " + outlet.latitude + ", " + outlet.longitude);
 
                 // Display newly updated name and email
-                txtDetails.setText(user.name + ", " + user.email);
+                txtDetails.setText(outlet.outletName);
 
-                emailEditText.setText("");
-                nameEditText.setText("");
-
-                toggleButton();
+                Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                intent.putExtra("latitude", outlet.latitude);
+                intent.putExtra("longitude", outlet.longitude);
+                startActivity(intent);
             }
 
             @Override

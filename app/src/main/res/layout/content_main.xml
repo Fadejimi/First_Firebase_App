@@ -29,10 +29,10 @@
             android:layout_height="wrap_content">
 
             <EditText
-                android:id="@+id/name"
+                android:id="@+id/outlet_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/name"
+                android:hint="@string/outlet_name"
                 android:inputType="textCapWords"
                 android:maxLines="1"/>
         </android.support.design.widget.TextInputLayout>
@@ -44,12 +44,64 @@
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/email"
-                android:hint="@string/email"
-                android:inputType="textEmailAddress"
+                android:id="@+id/outlet_address"
+                android:hint="@string/address"
+                android:inputType="text"
                 android:maxLines="1"/>
         </android.support.design.widget.TextInputLayout>
 
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/class_item"
+                android:hint="@string/class_item"
+                android:inputType="text"
+                android:maxLines="1"/>
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/contact_name"
+                android:hint="@string/contact_name"
+                android:inputType="text"
+                android:maxLines="1"/>
+        </android.support.design.widget.TextInputLayout>
+
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/contact_mobile"
+                android:hint="@string/contact_mobile"
+                android:inputType="text"
+                android:maxLines="1"/>
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/qty"
+                android:hint="@string/qty"
+                android:inputType="numberDecimal"
+                android:maxLines="1"/>
+        </android.support.design.widget.TextInputLayout>
 
         <Button
             android:layout_width="match_parent"
@@ -60,8 +112,7 @@
             android:layout_marginTop="16dp"
             android:background="@color/colorPrimary"
             android:textColor="@android:color/white"
-            android:textStyle="bold"
-            />
+            android:textStyle="bold" />
     </LinearLayout>
 
 
